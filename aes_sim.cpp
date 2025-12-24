@@ -382,7 +382,7 @@ int main() {
         printState(state, "After Final AddRoundKey");
         
         cout << "\n========================================\n";
-        cout << "CIPHERTEXT: " << stateToHexString(state) << endl;
+        cout << "CIPHERTEXT (128-bit): " << stateToHexString(state) << endl;
         cout << "========================================\n";
     }
     else if (choice == 2) {
@@ -453,7 +453,7 @@ int main() {
         printState(state, "After Final AddRoundKey");
         
         cout << "\n========================================\n";
-        cout << "PLAINTEXT: " << stateToHexString(state) << endl;
+        cout << "OUTPUT (128-bit): " << stateToHexString(state) << endl;
         cout << "========================================\n";
     }
     
