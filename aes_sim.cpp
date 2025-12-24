@@ -3,13 +3,12 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <cstdint>
 #include <algorithm>
 
 using namespace std;
 
-// AES S-Box
-const uint8_t sbox[256] = {
+// standard aes sbox
+const unsigned char sbox[256] = {
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
     0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
     0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -28,8 +27,8 @@ const uint8_t sbox[256] = {
     0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
-// AES Inverse S-Box
-const uint8_t inv_sbox[256] = {
+// inverse sbox for decryption
+const unsigned char inv_sbox[256] = {
     0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
     0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
     0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
@@ -48,32 +47,29 @@ const uint8_t inv_sbox[256] = {
     0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
 };
 
-// Rcon for key expansion
-const uint8_t Rcon[11] = {
+// rcon values for key expansion
+const unsigned char Rcon[11] = {
     0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36
 };
 
-// Utility functions
-void hexStringToState(const string& hex, uint8_t state[4][4]) {
+// convert hex string to state array
+void hexStringToState(const string& hex, unsigned char state[4][4]) {
     string cleanHex = hex;
     
-    // Remove "0x" or "0X" prefix if present
     if (cleanHex.substr(0, 2) == "0x" || cleanHex.substr(0, 2) == "0X") {
         cleanHex = cleanHex.substr(2);
     }
     
-    // Remove all spaces from the hex string
+    // remove spaces
     cleanHex.erase(remove(cleanHex.begin(), cleanHex.end(), ' '), cleanHex.end());
     
-    // Convert hex string to bytes sequentially, then arrange in column-major order
-    uint8_t bytes[16];
+    unsigned char bytes[16];
     for (int i = 0; i < 16; i++) {
         string byteString = cleanHex.substr(i * 2, 2);
-        bytes[i] = (uint8_t)strtoul(byteString.c_str(), nullptr, 16);
+        bytes[i] = (unsigned char)strtoul(byteString.c_str(), nullptr, 16);
     }
     
-    // Now fill state matrix column by column
-    // Bytes 0-3 go to column 0, bytes 4-7 to column 1, etc.
+    // fill column by column
     int byteIndex = 0;
     for (int col = 0; col < 4; col++) {
         for (int row = 0; row < 4; row++) {
@@ -82,10 +78,11 @@ void hexStringToState(const string& hex, uint8_t state[4][4]) {
     }
 }
 
-string stateToHexString(uint8_t state[4][4]) {
+// convert state back to hex
+string stateToHexString(unsigned char state[4][4]) {
     stringstream ss;
     ss << "0x";
-    // Read column by column to maintain byte order
+    ss << uppercase;
     for (int col = 0; col < 4; col++) {
         for (int row = 0; row < 4; row++) {
             ss << hex << setw(2) << setfill('0') << (int)state[row][col];
@@ -94,21 +91,20 @@ string stateToHexString(uint8_t state[4][4]) {
     return ss.str();
 }
 
-void printState(uint8_t state[4][4], const string& label) {
+// print state matrix
+void printState(unsigned char state[4][4], const string& label) {
     cout << "\n" << label << ":\n";
     for (int row = 0; row < 4; row++) {
         for (int col = 0; col < 4; col++) {
-            cout << hex << setw(2) << setfill('0') << (int)state[row][col] << " ";
+            cout << hex << uppercase << setw(2) << setfill('0') << (int)state[row][col] << " ";
         }
         cout << endl;
     }
-    cout << "Hex format: " << stateToHexString(state) << endl;
+    cout << "Hex format (128-bit): " << stateToHexString(state) << endl;
 }
 
-// ============ AES OPERATIONS ============
-
-// Task 9: SubBytes
-void subBytes(uint8_t state[4][4]) {
+// subbytes transformation
+void subBytes(unsigned char state[4][4]) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             state[i][j] = sbox[state[i][j]];
@@ -116,18 +112,18 @@ void subBytes(uint8_t state[4][4]) {
     }
 }
 
-// Task 10: ShiftRows
-void shiftRows(uint8_t state[4][4]) {
-    uint8_t temp;
+// shiftrows transformation
+void shiftRows(unsigned char state[4][4]) {
+    unsigned char temp;
     
-    // Row 1: shift left by 1
+    // row 1 shift left by 1
     temp = state[1][0];
     state[1][0] = state[1][1];
     state[1][1] = state[1][2];
     state[1][2] = state[1][3];
     state[1][3] = temp;
     
-    // Row 2: shift left by 2
+    // row 2 shift left by 2
     temp = state[2][0];
     state[2][0] = state[2][2];
     state[2][2] = temp;
@@ -135,7 +131,7 @@ void shiftRows(uint8_t state[4][4]) {
     state[2][1] = state[2][3];
     state[2][3] = temp;
     
-    // Row 3: shift left by 3 (or right by 1)
+    // row 3 shift left by 3
     temp = state[3][3];
     state[3][3] = state[3][2];
     state[3][2] = state[3][1];
@@ -143,9 +139,9 @@ void shiftRows(uint8_t state[4][4]) {
     state[3][0] = temp;
 }
 
-// Galois Field multiplication
-uint8_t gmul(uint8_t a, uint8_t b) {
-    uint8_t p = 0;
+// galois field multiplication
+unsigned char gmul(unsigned char a, unsigned char b) {
+    unsigned char p = 0;
     for (int i = 0; i < 8; i++) {
         if (b & 1) {
             p ^= a;
@@ -153,16 +149,16 @@ uint8_t gmul(uint8_t a, uint8_t b) {
         bool hi_bit_set = (a & 0x80);
         a <<= 1;
         if (hi_bit_set) {
-            a ^= 0x1b; // x^8 + x^4 + x^3 + x + 1
+            a ^= 0x1b;
         }
         b >>= 1;
     }
     return p;
 }
 
-// Task 11: MixColumns
-void mixColumns(uint8_t state[4][4]) {
-    uint8_t temp[4];
+// mixcolumns transformation
+void mixColumns(unsigned char state[4][4]) {
+    unsigned char temp[4];
     
     for (int col = 0; col < 4; col++) {
         temp[0] = gmul(state[0][col], 2) ^ gmul(state[1][col], 3) ^ 
@@ -180,8 +176,8 @@ void mixColumns(uint8_t state[4][4]) {
     }
 }
 
-// Task 12: AddRoundKey
-void addRoundKey(uint8_t state[4][4], uint8_t roundKey[4][4]) {
+// addroundkey xor with round key
+void addRoundKey(unsigned char state[4][4], unsigned char roundKey[4][4]) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             state[i][j] ^= roundKey[i][j];
@@ -189,10 +185,8 @@ void addRoundKey(uint8_t state[4][4], uint8_t roundKey[4][4]) {
     }
 }
 
-// ============ INVERSE OPERATIONS ============
-
-// Task 13: Inverse SubBytes
-void invSubBytes(uint8_t state[4][4]) {
+// inverse subbytes
+void invSubBytes(unsigned char state[4][4]) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             state[i][j] = inv_sbox[state[i][j]];
@@ -200,18 +194,18 @@ void invSubBytes(uint8_t state[4][4]) {
     }
 }
 
-// Task 14: Inverse ShiftRows
-void invShiftRows(uint8_t state[4][4]) {
-    uint8_t temp;
+// inverse shiftrows
+void invShiftRows(unsigned char state[4][4]) {
+    unsigned char temp;
     
-    // Row 1: shift right by 1
+    // row 1 shift right by 1
     temp = state[1][3];
     state[1][3] = state[1][2];
     state[1][2] = state[1][1];
     state[1][1] = state[1][0];
     state[1][0] = temp;
     
-    // Row 2: shift right by 2
+    // row 2 shift right by 2
     temp = state[2][0];
     state[2][0] = state[2][2];
     state[2][2] = temp;
@@ -219,7 +213,7 @@ void invShiftRows(uint8_t state[4][4]) {
     state[2][1] = state[2][3];
     state[2][3] = temp;
     
-    // Row 3: shift right by 3 (or left by 1)
+    // row 3 shift right by 3
     temp = state[3][0];
     state[3][0] = state[3][1];
     state[3][1] = state[3][2];
@@ -227,9 +221,9 @@ void invShiftRows(uint8_t state[4][4]) {
     state[3][3] = temp;
 }
 
-// Task 15: Inverse MixColumns
-void invMixColumns(uint8_t state[4][4]) {
-    uint8_t temp[4];
+// inverse mixcolumns
+void invMixColumns(unsigned char state[4][4]) {
+    unsigned char temp[4];
     
     for (int col = 0; col < 4; col++) {
         temp[0] = gmul(state[0][col], 0x0e) ^ gmul(state[1][col], 0x0b) ^ 
@@ -247,11 +241,11 @@ void invMixColumns(uint8_t state[4][4]) {
     }
 }
 
-// Task 16: Key Expansion
-void keyExpansion(const uint8_t key[16], uint8_t roundKeys[11][4][4]) {
-    uint8_t temp[4];
+// key expansion function
+void keyExpansion(const unsigned char key[16], unsigned char roundKeys[11][4][4]) {
+    unsigned char temp[4];
     
-    // First round key is the original key - fill column by column
+    // first round key is the key itself
     int keyIndex = 0;
     for (int col = 0; col < 4; col++) {
         for (int row = 0; row < 4; row++) {
@@ -259,28 +253,28 @@ void keyExpansion(const uint8_t key[16], uint8_t roundKeys[11][4][4]) {
         }
     }
     
+    // generate the rest
     for (int round = 1; round <= 10; round++) {
-        // Copy last column of previous round key
         for (int i = 0; i < 4; i++) {
             temp[i] = roundKeys[round - 1][i][3];
         }
         
-        // RotWord
-        uint8_t t = temp[0];
+        // rotword
+        unsigned char t = temp[0];
         temp[0] = temp[1];
         temp[1] = temp[2];
         temp[2] = temp[3];
         temp[3] = t;
         
-        // SubWord
+        // subword
         for (int i = 0; i < 4; i++) {
             temp[i] = sbox[temp[i]];
         }
         
-        // XOR with Rcon
+        // xor with rcon
         temp[0] ^= Rcon[round];
         
-        // Generate new round key
+        // generate columns
         for (int col = 0; col < 4; col++) {
             if (col == 0) {
                 for (int row = 0; row < 4; row++) {
@@ -296,12 +290,10 @@ void keyExpansion(const uint8_t key[16], uint8_t roundKeys[11][4][4]) {
     }
 }
 
-// ============ MAIN PROGRAM ============
-
 int main() {
     int choice;
     string input;
-    uint8_t state[4][4];
+    unsigned char state[4][4];
     
     cout << "========================================\n";
     cout << "   AES Cryptography Implementation\n";
@@ -331,29 +323,28 @@ int main() {
             numRounds = 10;
         }
         
-        uint8_t key[16];
+        unsigned char key[16];
         string cleanHex = keyInput;
         if (cleanHex.substr(0, 2) == "0x" || cleanHex.substr(0, 2) == "0X") {
             cleanHex = cleanHex.substr(2);
         }
-        // Remove spaces
         cleanHex.erase(remove(cleanHex.begin(), cleanHex.end(), ' '), cleanHex.end());
         
         for (int i = 0; i < 16; i++) {
             string byteString = cleanHex.substr(i * 2, 2);
-            key[i] = (uint8_t)strtoul(byteString.c_str(), nullptr, 16);
+            key[i] = (unsigned char)strtoul(byteString.c_str(), nullptr, 16);
         }
         
-        uint8_t roundKeys[11][4][4];
+        unsigned char roundKeys[11][4][4];
         keyExpansion(key, roundKeys);
         
         printState(state, "Initial State");
         
-        // Initial round
+        // initial addroundkey
         addRoundKey(state, roundKeys[0]);
         printState(state, "After Initial AddRoundKey (Round 0)");
         
-        // Main rounds
+        // main rounds
         for (int round = 1; round < numRounds; round++) {
             cout << "\n========== ROUND " << dec << round << " ==========\n";
             
@@ -370,7 +361,7 @@ int main() {
             printState(state, "After AddRoundKey");
         }
         
-        // Final round (no MixColumns)
+        // final round no mixcolumns
         cout << "\n========== ROUND " << dec << numRounds << " (Final) ==========\n";
         subBytes(state);
         printState(state, "After SubBytes");
@@ -402,29 +393,28 @@ int main() {
             numRounds = 10;
         }
         
-        uint8_t key[16];
+        unsigned char key[16];
         string cleanHex = keyInput;
         if (cleanHex.substr(0, 2) == "0x" || cleanHex.substr(0, 2) == "0X") {
             cleanHex = cleanHex.substr(2);
         }
-        // Remove spaces
         cleanHex.erase(remove(cleanHex.begin(), cleanHex.end(), ' '), cleanHex.end());
         
         for (int i = 0; i < 16; i++) {
             string byteString = cleanHex.substr(i * 2, 2);
-            key[i] = (uint8_t)strtoul(byteString.c_str(), nullptr, 16);
+            key[i] = (unsigned char)strtoul(byteString.c_str(), nullptr, 16);
         }
         
-        uint8_t roundKeys[11][4][4];
+        unsigned char roundKeys[11][4][4];
         keyExpansion(key, roundKeys);
         
         printState(state, "Initial Ciphertext");
         
-        // Initial round
+        // start from last round key
         addRoundKey(state, roundKeys[numRounds]);
         printState(state, "After Initial AddRoundKey (Round " + to_string(numRounds) + ")");
         
-        // Main rounds (in reverse)
+        // reverse rounds
         for (int round = numRounds - 1; round >= 1; round--) {
             cout << "\n========== ROUND " << dec << (numRounds - round) << " ==========\n";
             
@@ -441,7 +431,7 @@ int main() {
             printState(state, "After Inverse MixColumns");
         }
         
-        // Final round (no InvMixColumns)
+        // final round
         cout << "\n========== ROUND " << dec << numRounds << " (Final) ==========\n";
         invShiftRows(state);
         printState(state, "After Inverse ShiftRows");
