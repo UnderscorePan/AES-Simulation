@@ -10,12 +10,12 @@ C++ implementation of AES encryption/decryption for university cryptography assi
 
 ## Compilation
 ```bash
-g++ -o aes_program aes_program.cpp
+g++ -o aes_sim aes_sim.cpp
 ```
 
 ## Usage
 ```bash
-./aes_program
+./aes_sim
 ```
 
 ## Input Format
