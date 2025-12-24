@@ -25,12 +25,3 @@ g++ -o aes_sim aes_sim.cpp
 ## Assignment Details
 Course: CryptoGraphy 2025/2026 Term 2530
 Tasks: AES Encryption/Decryption
-```
-
-Then upload both files to GitHub!
-
-**Pro tip:** Don't commit compiled executables (`.exe`, `.out` files). Add a `.gitignore` file with:
-```
-*.exe
-*.out
-*.o
