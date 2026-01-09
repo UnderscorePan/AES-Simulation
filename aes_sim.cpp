@@ -4,8 +4,17 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
+
+ofstream outputFile;
+
+// Helper function to output to both console and file
+void logOutput(const string& text) {
+    cout << text;
+    outputFile << text;
+}
 
 // standard aes sbox
 const unsigned char sbox[256] = {
@@ -93,14 +102,19 @@ string stateToHexString(unsigned char state[4][4]) {
 
 // print state matrix
 void printState(unsigned char state[4][4], const string& label) {
-    cout << "\n" << label << ":\n";
+    logOutput("\n" + label + ":\n");
     for (int row = 0; row < 4; row++) {
+        stringstream ss;
+        ss << hex << uppercase;
         for (int col = 0; col < 4; col++) {
-            cout << hex << uppercase << setw(2) << setfill('0') << (int)state[row][col] << " ";
+            ss << setw(2) << setfill('0') << (int)state[row][col] << " ";
         }
-        cout << endl;
+        ss << "\n";
+        logOutput(ss.str());
     }
-    cout << "Hex format (128-bit): " << stateToHexString(state) << endl;
+    stringstream ss;
+    ss << "Hex format (128-bit): " << stateToHexString(state) << "\n";
+    logOutput(ss.str());
 }
 
 // subbytes transformation
@@ -291,13 +305,20 @@ void keyExpansion(const unsigned char key[16], unsigned char roundKeys[11][4][4]
 }
 
 int main() {
+    // Open output file
+    outputFile.open("aes_output.txt", ios::app);
+    if (!outputFile.is_open()) {
+        cerr << "Error: Could not open aes_output.txt for writing!" << endl;
+        return 1;
+    }
+    
     int choice;
     string input;
     unsigned char state[4][4];
     
-    cout << "========================================\n";
-    cout << "   AES Cryptography Implementation\n";
-    cout << "========================================\n\n";
+    logOutput("========================================\n");
+    logOutput("   AES Cryptography Implementation\n");
+    logOutput("========================================\n\n");
     
     cout << "Select operation:\n";
     cout << "1. Full AES Encryption (10 rounds)\n";
@@ -346,7 +367,9 @@ int main() {
         
         // main rounds
         for (int round = 1; round < numRounds; round++) {
-            cout << "\n========== ROUND " << dec << round << " ==========\n";
+            stringstream ss;
+            ss << "\n========== ROUND " << dec << round << " ==========\n";
+            logOutput(ss.str());
             
             subBytes(state);
             printState(state, "After SubBytes");
@@ -362,7 +385,11 @@ int main() {
         }
         
         // final round no mixcolumns
-        cout << "\n========== ROUND " << dec << numRounds << " (Final) ==========\n";
+        {
+            stringstream ss;
+            ss << "\n========== ROUND " << dec << numRounds << " (Final) ==========\n";
+            logOutput(ss.str());
+        }
         subBytes(state);
         printState(state, "After SubBytes");
         
@@ -372,9 +399,13 @@ int main() {
         addRoundKey(state, roundKeys[numRounds]);
         printState(state, "After Final AddRoundKey");
         
-        cout << "\n========================================\n";
-        cout << "CIPHERTEXT (128-bit): " << stateToHexString(state) << endl;
-        cout << "========================================\n";
+        logOutput("\n========================================\n");
+        {
+            stringstream ss;
+            ss << "CIPHERTEXT (128-bit): " << stateToHexString(state) << "\n";
+            logOutput(ss.str());
+        }
+        logOutput("========================================\n");
     }
     else if (choice == 2) {
         cout << "\nEnter 128-bit ciphertext in hex format: ";
@@ -416,7 +447,9 @@ int main() {
         
         // reverse rounds
         for (int round = numRounds - 1; round >= 1; round--) {
-            cout << "\n========== ROUND " << dec << (numRounds - round) << " ==========\n";
+            stringstream ss;
+            ss << "\n========== ROUND " << dec << (numRounds - round) << " ==========\n";
+            logOutput(ss.str());
             
             invShiftRows(state);
             printState(state, "After Inverse ShiftRows");
@@ -432,7 +465,11 @@ int main() {
         }
         
         // final round
-        cout << "\n========== ROUND " << dec << numRounds << " (Final) ==========\n";
+        {
+            stringstream ss;
+            ss << "\n========== ROUND " << dec << numRounds << " (Final) ==========\n";
+            logOutput(ss.str());
+        }
         invShiftRows(state);
         printState(state, "After Inverse ShiftRows");
         
@@ -442,10 +479,15 @@ int main() {
         addRoundKey(state, roundKeys[0]);
         printState(state, "After Final AddRoundKey");
         
-        cout << "\n========================================\n";
-        cout << "OUTPUT (128-bit): " << stateToHexString(state) << endl;
-        cout << "========================================\n";
+        logOutput("\n========================================\n");
+        {
+            stringstream ss;
+            ss << "OUTPUT (128-bit): " << stateToHexString(state) << "\n";
+            logOutput(ss.str());
+        }
+        logOutput("========================================\n");
     }
     
+    outputFile.close();
     return 0;
 }
