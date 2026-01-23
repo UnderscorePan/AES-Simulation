@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -94,6 +95,13 @@ int main() {
     shiftRows(state);
     printState(state, "After ShiftRows");
     cout << "\nResult: " << stateToHexString(state) << "\n";
+    
+    ofstream outFile("shiftrows_output.txt");
+    if (outFile.is_open()) {
+        outFile << stateToHexString(state) << "\n";
+        outFile.close();
+        cout << "Output written to shiftrows_output.txt\n";
+    }
     
     return 0;
 }

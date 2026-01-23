@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -98,6 +99,13 @@ int main() {
     subBytes(state);
     printState(state, "After SubBytes");
     cout << "\nResult: " << stateToHexString(state) << "\n";
+    
+    ofstream outFile("subbyte_output.txt");
+    if (outFile.is_open()) {
+        outFile << stateToHexString(state) << "\n";
+        outFile.close();
+        cout << "Output written to subbyte_output.txt\n";
+    }
     
     return 0;
 }

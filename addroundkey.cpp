@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -88,6 +89,13 @@ int main() {
     
     printState(state, "After AddRoundKey");
     cout << "\nResult: " << stateToHexString(state) << "\n";
+    
+    ofstream outFile("addroundkey_output.txt");
+    if (outFile.is_open()) {
+        outFile << stateToHexString(state) << "\n";
+        outFile.close();
+        cout << "Output written to addroundkey_output.txt\n";
+    }
     
     return 0;
 }

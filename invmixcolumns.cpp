@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -106,6 +107,13 @@ int main() {
     invMixColumns(state);
     printState(state, "After Inverse MixColumns");
     cout << "\nResult: " << stateToHexString(state) << "\n";
+    
+    ofstream outFile("invmixcolumns_output.txt");
+    if (outFile.is_open()) {
+        outFile << stateToHexString(state) << "\n";
+        outFile.close();
+        cout << "Output written to invmixcolumns_output.txt\n";
+    }
     
     return 0;
 }

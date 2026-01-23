@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -94,6 +95,13 @@ int main() {
     invShiftRows(state);
     printState(state, "After Inverse ShiftRows");
     cout << "\nResult: " << stateToHexString(state) << "\n";
+    
+    ofstream outFile("invshiftrows_output.txt");
+    if (outFile.is_open()) {
+        outFile << stateToHexString(state) << "\n";
+        outFile.close();
+        cout << "Output written to invshiftrows_output.txt\n";
+    }
     
     return 0;
 }

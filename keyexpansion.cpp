@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -107,6 +108,21 @@ int main() {
             }
         }
         cout << "\n";
+    }
+    
+    ofstream outFile("keyexpansion_output.txt");
+    if (outFile.is_open()) {
+        for (int round = 0; round <= 10; round++) {
+            outFile << "Round " << round << ": ";
+            for (int row = 0; row < 4; row++) {
+                for (int col = 0; col < 4; col++) {
+                    outFile << hex << setw(2) << setfill('0') << (int)roundKeys[round][row][col];
+                }
+            }
+            outFile << "\n";
+        }
+        outFile.close();
+        cout << "Output written to keyexpansion_output.txt\n";
     }
     
     return 0;
