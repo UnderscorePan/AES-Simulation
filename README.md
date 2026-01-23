@@ -3,19 +3,16 @@
 C++ implementation of AES encryption/decryption for university cryptography assignment.
 
 ## Features
-- Full AES-128 encryption (configurable rounds 1-10)
-- Full AES-128 decryption (configurable rounds 1-10)
-- Detailed step-by-step output for each round
-- Standard hex input/output for interoperability
+- Simulation of each part in each round of AES
 
 ## Compilation
 ```bash
-g++ -o aes_sim aes_sim.cpp
+g++ -o part_name partname.cpp
 ```
 
 ## Usage
 ```bash
-./aes_sim
+./part_nape
 ```
 
 ## Input Format
